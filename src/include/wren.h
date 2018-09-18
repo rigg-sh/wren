@@ -266,6 +266,7 @@ typedef enum
   WREN_TYPE_NUM,
   WREN_TYPE_FOREIGN,
   WREN_TYPE_LIST,
+  WREN_TYPE_MAP,
   WREN_TYPE_NULL,
   WREN_TYPE_RANGE,
   WREN_TYPE_STRING,
@@ -482,6 +483,9 @@ void* wrenSetSlotNewForeign(WrenFiber* fiber, int slot, int classSlot, size_t si
 // Stores a new empty list in [slot].
 void wrenSetSlotNewList(WrenFiber* fiber, int slot);
 
+// Store a new empty map in [slot].
+void wrenSetSlotNewMap(WrenFiber* fiber, int slot);
+
 // Store a new range in [slot].
 void wrenSetSlotNewRange(WrenFiber* fiber, int slot, double from, double to, bool inclusive);
 
@@ -514,6 +518,38 @@ void wrenGetListElement(WrenFiber* fiber, int listSlot, int index, int elementSl
 // As in Wren, negative indexes can be used to insert from the end. To append
 // an element, use `-1` for the index.
 void wrenInsertInList(WrenFiber* fiber, int listSlot, int index, int elementSlot);
+
+// Reads value from map [mapSlot] with key [keySlot] and stores it in [valueSlot].
+//
+// Returns true, if the key is present, false otherwise. Note that true is still
+// returned if the value is set to null.
+//
+// To only check the presence of a key, [valueSlot] can be set to -1.
+//
+// It is an error to call this if the [mapSlot] does not contain a map value.
+bool wrenGetMapValue(WrenFiber* fiber, int mapSlot, int keySlot, int valueSlot);
+
+// Puts value in [valueSlot] into map [mapSlot] at key [keySlot].
+//
+// It is an error to call this if the [mapSlot] does not contain a map value.
+void wrenPutInMap(WrenFiber* fiber, int mapSlot, int keySlot, int valueSlot);
+
+// Removes entry from map [mapSlot] with key [keySlot] and stores the old value
+// in [valueSlot].
+//
+// Returns true, if a non-null entry was removed, false otherwise. Note that
+// false might is still be returned if the key is present, but the value was
+// set to null (differs from wrenGetMapValue).
+//
+// To ignore the old value, [valueSlot] can be set to -1.
+//
+// It is an error to call this if the [mapSlot] does not contain a map value.
+bool wrenRemoveFromMap(WrenFiber* fiber, int mapSlot, int keySlot, int valueSlot);
+
+// Clears the map [mapSlot].
+//
+// It is an error to call this if the [mapSlot] does not contain a map value.
+void wrenClearMap(WrenFiber* fiber, int mapSlot);
 
 // Reads the bounds of range in [slot] and stores them in pointers [from], [to]
 // and [inclusive].

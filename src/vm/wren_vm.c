@@ -1618,6 +1618,7 @@ WrenType wrenGetSlotType(WrenFiber* fiber, int slot)
   if (IS_NUM(value)) return WREN_TYPE_NUM;
   if (IS_FOREIGN(value)) return WREN_TYPE_FOREIGN;
   if (IS_LIST(value)) return WREN_TYPE_LIST;
+  if (IS_MAP(value)) return WREN_TYPE_MAP;
   if (IS_NULL(value)) return WREN_TYPE_NULL;
   if (IS_RANGE(value)) return WREN_TYPE_RANGE;
   if (IS_STRING(value)) return WREN_TYPE_STRING;
@@ -1716,6 +1717,11 @@ void wrenSetSlotNewList(WrenFiber* fiber, int slot)
   wrenSetSlot(fiber, slot, OBJ_VAL(wrenNewList(fiber->vm, 0)));
 }
 
+void wrenSetSlotNewMap(WrenFiber* fiber, int slot)
+{
+  wrenSetSlot(fiber, slot, OBJ_VAL(wrenNewMap(fiber->vm)));
+}
+
 void wrenSetSlotNewRange(WrenFiber* fiber, int slot, double from, double to, bool inclusive)
 {
   wrenSetSlot(fiber, slot, wrenNewRange(fiber->vm, from, to, inclusive));
@@ -1778,6 +1784,46 @@ void wrenInsertInList(WrenFiber* fiber, int listSlot, int index, int elementSlot
   ASSERT(index <= list->elements.count, "Index out of bounds.");
   
   wrenListInsert(fiber->vm, list, value, index);
+}
+
+bool wrenGetMapValue(WrenFiber* fiber, int mapSlot, int keySlot, int valueSlot)
+{
+  Value valueMap = wrenGetSlot(fiber, mapSlot);
+  ASSERT(IS_MAP(valueMap), "Slot must hold a map.");
+  ObjMap* map = AS_MAP(valueMap);
+  Value value = wrenMapGet(map, wrenGetSlot(fiber, keySlot));
+  if (valueSlot>=0)
+  {
+    if (IS_UNDEFINED(value)) wrenSetSlot(fiber, valueSlot, NULL_VAL);
+    else wrenSetSlot(fiber, valueSlot, value);
+  }
+  return !IS_UNDEFINED(value);
+}
+
+void wrenPutInMap(WrenFiber* fiber, int mapSlot, int keySlot, int valueSlot)
+{
+  Value valueMap = wrenGetSlot(fiber, mapSlot);
+  ASSERT(IS_MAP(valueMap), "Slot must hold a map.");
+  ObjMap* map = AS_MAP(valueMap);
+  wrenMapSet(fiber->vm, map, wrenGetSlot(fiber, keySlot), wrenGetSlot(fiber, valueSlot));
+}
+
+bool wrenRemoveFromMap(WrenFiber* fiber, int mapSlot, int keySlot, int valueSlot)
+{
+  Value valueMap = wrenGetSlot(fiber, mapSlot);
+  ASSERT(IS_MAP(valueMap), "Slot must hold a map.");
+  ObjMap* map = AS_MAP(valueMap);
+  Value removedValue = wrenMapRemoveKey(fiber->vm, map, wrenGetSlot(fiber, keySlot));
+  if (valueSlot>=0) wrenSetSlot(fiber, valueSlot, removedValue);
+  return !IS_NULL(removedValue);
+}
+
+void wrenClearMap(WrenFiber* fiber, int mapSlot)
+{
+  Value valueMap = wrenGetSlot(fiber, mapSlot);
+  ASSERT(IS_MAP(valueMap), "Slot must hold a map.");
+  ObjMap* map = AS_MAP(valueMap);
+  wrenMapClear(fiber->vm, map);
 }
 
 void wrenGetRangeBounds(WrenFiber* fiber, int slot, double* from, double* to, bool* inclusive)
