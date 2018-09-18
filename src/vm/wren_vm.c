@@ -1619,6 +1619,7 @@ WrenType wrenGetSlotType(WrenFiber* fiber, int slot)
   if (IS_FOREIGN(value)) return WREN_TYPE_FOREIGN;
   if (IS_LIST(value)) return WREN_TYPE_LIST;
   if (IS_NULL(value)) return WREN_TYPE_NULL;
+  if (IS_RANGE(value)) return WREN_TYPE_RANGE;
   if (IS_STRING(value)) return WREN_TYPE_STRING;
   
   return WREN_TYPE_UNKNOWN;
@@ -1715,6 +1716,11 @@ void wrenSetSlotNewList(WrenFiber* fiber, int slot)
   wrenSetSlot(fiber, slot, OBJ_VAL(wrenNewList(fiber->vm, 0)));
 }
 
+void wrenSetSlotNewRange(WrenFiber* fiber, int slot, double from, double to, bool inclusive)
+{
+  wrenSetSlot(fiber, slot, wrenNewRange(fiber->vm, from, to, inclusive));
+}
+
 void wrenSetSlotNull(WrenFiber* fiber, int slot)
 {
   wrenSetSlot(fiber, slot, NULL_VAL);
@@ -1772,6 +1778,16 @@ void wrenInsertInList(WrenFiber* fiber, int listSlot, int index, int elementSlot
   ASSERT(index <= list->elements.count, "Index out of bounds.");
   
   wrenListInsert(fiber->vm, list, value, index);
+}
+
+void wrenGetRangeBounds(WrenFiber* fiber, int slot, double* from, double* to, bool* inclusive)
+{
+  Value value = wrenGetSlot(fiber, slot);
+  ASSERT(IS_RANGE(value), "Slot must hold a range.");
+  ObjRange* range = AS_RANGE(value);
+  if (from) *from = range->from;
+  if (to) *to = range->to;
+  if (inclusive) *inclusive = range->isInclusive;
 }
 
 void wrenGetVariable(WrenVM* vm, const char* module, const char* name,

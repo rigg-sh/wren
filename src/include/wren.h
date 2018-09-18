@@ -267,6 +267,7 @@ typedef enum
   WREN_TYPE_FOREIGN,
   WREN_TYPE_LIST,
   WREN_TYPE_NULL,
+  WREN_TYPE_RANGE,
   WREN_TYPE_STRING,
 
   // The object is of a type that isn't accessible by the C API.
@@ -481,6 +482,9 @@ void* wrenSetSlotNewForeign(WrenFiber* fiber, int slot, int classSlot, size_t si
 // Stores a new empty list in [slot].
 void wrenSetSlotNewList(WrenFiber* fiber, int slot);
 
+// Store a new range in [slot].
+void wrenSetSlotNewRange(WrenFiber* fiber, int slot, double from, double to, bool inclusive);
+
 // Stores null in [slot].
 void wrenSetSlotNull(WrenFiber* fiber, int slot);
 
@@ -510,6 +514,14 @@ void wrenGetListElement(WrenFiber* fiber, int listSlot, int index, int elementSl
 // As in Wren, negative indexes can be used to insert from the end. To append
 // an element, use `-1` for the index.
 void wrenInsertInList(WrenFiber* fiber, int listSlot, int index, int elementSlot);
+
+// Reads the bounds of range in [slot] and stores them in pointers [from], [to]
+// and [inclusive].
+//
+// The pointers may be set to NULL if the value should not be set.
+//
+// It is an error to call this if the [slot] does not contain a range value.
+void wrenGetRangeBounds(WrenFiber* fiber, int slot, double* from, double* to, bool* inclusive);
 
 // Looks up the top level variable with [name] in resolved [module] and stores
 // it in [slot].
