@@ -505,6 +505,10 @@ void wrenGetVariable(WrenVM* vm, const char* module, const char* name,
 // runtime error object.
 void wrenAbortFiber(WrenFiber* fiber, int slot);
 
+// Returns true if the current fiber has been aborted by a call to wrenAbortFiber
+// or a runtime error.
+bool wrenIsAborted(WrenFiber* fiber);
+
 // Returns the user data associated with the WrenVM.
 void* wrenGetUserData(WrenVM* vm);
 

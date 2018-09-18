@@ -1770,6 +1770,10 @@ void wrenAbortFiber(WrenFiber* fiber, int slot)
   fiber->error = value;
 }
 
+bool wrenIsAborted(WrenFiber* fiber) {
+  return !IS_NULL(fiber->error);
+}
+
 void* wrenGetUserData(WrenVM* vm)
 {
 	return vm->config.userData;
