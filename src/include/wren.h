@@ -393,8 +393,23 @@ void wrenCopySlots(WrenFiber* fiber, int dstSlot, int srcSlot, int size);
 // Does not grow the stack if destination is more then slot count
 void wrenFillSlots(WrenFiber* fiber, int dstSlot, int srcSlot, int size);
 
+// Checks if the object in [slot] is an instance of the class at [classSlot].
+//
+// Does not invoke any overloaded is operator.
+//
+// It is an error to call this if the classSlot does not contain a class.
+bool wrenCheckSlotIsClass(WrenFiber* fiber, int slot, int classSlot);
+
+// Retrives the class object of the object in [slot] and stores it in [classSlot].
+void wrenRetriveSlotClass(WrenFiber* fiber, int slot, int classSlot);
+
 // Gets the type of the object in [slot].
 WrenType wrenGetSlotType(WrenFiber* fiber, int slot);
+
+// Gets the type name of the object in [slot], e.g. Num, Bool, String.
+//
+// Don't modify or free the string returned.
+const char* wrenGetSlotTypeName(WrenFiber* fiber, int slot);
 
 // Reads a boolean value from [slot].
 //

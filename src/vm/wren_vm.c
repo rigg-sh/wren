@@ -1583,6 +1583,32 @@ void wrenFillSlots(WrenFiber *fiber, int dstSlot, int srcSlot, int size)
   wrenSetSlots(fiber, dstSlot, wrenGetSlot(fiber, srcSlot), size);
 }
 
+// Return true if objClass is a subclass of baseClassObj; does not invoke overloaded is operator.
+static inline bool isOfClass(ObjClass* classObj, ObjClass* baseClassObj)
+{
+  do {
+    if (baseClassObj == classObj) return true;
+    classObj = classObj->superclass;
+  } while (classObj != NULL);
+  return false;
+}
+
+bool wrenCheckSlotIsClass(WrenFiber* fiber, int slot, int classSlot)
+{
+  Value classValue = wrenGetSlot(fiber, classSlot);
+  ASSERT(IS_CLASS(classValue), "Slot must hold a class.");
+  ObjClass *classObj = wrenGetClass(fiber->vm, wrenGetSlot(fiber, slot));
+  ObjClass *baseClassObj = AS_CLASS(classValue);
+  return isOfClass(classObj, baseClassObj);
+}
+
+void wrenRetriveSlotClass(WrenFiber* fiber, int slot, int classSlot)
+{
+  Value value = wrenGetSlot(fiber, slot);
+  ObjClass *classObj = wrenGetClass(fiber->vm, value);
+  wrenSetSlot(fiber, classSlot, OBJ_VAL(classObj));
+}
+
 // Gets the type of the object in [slot].
 WrenType wrenGetSlotType(WrenFiber* fiber, int slot)
 {
@@ -1596,6 +1622,13 @@ WrenType wrenGetSlotType(WrenFiber* fiber, int slot)
   if (IS_STRING(value)) return WREN_TYPE_STRING;
   
   return WREN_TYPE_UNKNOWN;
+}
+
+const char* wrenGetSlotTypeName(WrenFiber* fiber, int slot)
+{
+  Value value = wrenGetSlot(fiber, slot);
+  ObjClass *classObj = wrenGetClass(fiber->vm, value);
+  return classObj->name->value;
 }
 
 bool wrenGetSlotBool(WrenFiber* fiber, int slot)
