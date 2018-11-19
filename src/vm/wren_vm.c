@@ -793,7 +793,9 @@ static WrenInterpretResult runInterpreter(register WrenFiber* fiber)
   // Remember the current fiber so we can find it if a GC happens.
   vm->fiber = fiber;
   WrenFiber* calling_fiber = fiber;
-  fiber->state = FIBER_ROOT;
+  if (fiber->state == FIBER_OTHER) {
+    fiber->state = FIBER_ROOT;
+  }
 
   // Hoist these into local variables. They are accessed frequently in the loop
   // but assigned less frequently. Keeping them in locals and updating them when
