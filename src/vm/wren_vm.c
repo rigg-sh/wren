@@ -398,6 +398,11 @@ static void callForeign(WrenFiber* fiber,
 // handles the error. If none do, tells the VM to stop.
 static void runtimeError(WrenVM* vm)
 {
+  if (vm->fiber == NULL) {
+    // An upper call chain already failed and determined the VM should stop.
+    return;
+  }
+
   ASSERT(!IS_NULL(vm->fiber->error), "Should only call this after an error.");
 
   WrenFiber* current = vm->fiber;
